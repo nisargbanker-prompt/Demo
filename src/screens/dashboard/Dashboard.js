@@ -4,37 +4,177 @@ import {
   StyleSheet,
   Text,
   SafeAreaView,
-  FlatList,
-  TouchableOpacity,
   Image,
+  ToastAndroid,
+  TouchableOpacity,
 } from 'react-native';
-import Colors from './../../config/Theme';
 import Metrics from '../../config/Metrics';
-import {useSelector, useDispatch} from 'react-redux';
 import Config from '../../config/index';
+import Swiper from 'react-native-deck-swiper';
 import Utils from '../../utils/index';
+import * as authActions from '../../store/actions/auth';
+
+import {useDispatch} from 'react-redux';
 
 const DashboardScreen = props => {
   const dispatch = useDispatch();
 
-  useEffect(async () => {}, []);
+  const [name, setName] = useState('');
 
-  const onRastaurantHandler = index => {
-    props.navigation.navigate(Config.Route.RestaurantDetails, {
-      data: restaurantList[index],
-    });
+  const [cards, setCards] = useState([
+    require('../../../assets/one.png'),
+    require('../../../assets/two.png'),
+    require('../../../assets/three.png'),
+    require('../../../assets/four.png'),
+    require('../../../assets/five.png'),
+  ]);
+  const [cardIndex, setCardIndex] = useState(0);
+
+  useEffect(() => {
+    _getUSerData();
+  }, []);
+
+  _getUSerData = async () => {
+    const userName = await Utils.MethodUtils.Storage.getData(
+      Config.String.USER_NAME,
+    );
+    console.log('userName == > ' + userName);
+    setName(userName);
   };
 
-  const onMapHandler = index => {
-    props.navigation.navigate(Config.Route.Map, {
-      data: restaurantList[index],
-    });
+  const logoutHandler = async () => {
+    await Utils.MethodUtils.Storage.removeData(Config.String.IS_LOGIN);
+    dispatch(authActions.setUserSesson(false));
+  };
+
+  const renderCard = (card, index) => {
+    return (
+      <View style={styles.card}>
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <Image
+            resizeMode="contain"
+            style={{width: 280, height: 280}}
+            source={card}
+          />
+        </View>
+        <Text style={styles.text}>{index + 1}</Text>
+      </View>
+    );
+  };
+
+  const onSwiped = type => {
+    console.log(`on swiped ${type}`);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Welcome</Text>
-      <View style={styles.lessonBody}></View>
+      <Text style={styles.header}>Welcome {name}</Text>
+
+      <View style={styles.lessonBody}>
+        <Swiper
+          onSwiped={() => onSwiped('general')}
+          onSwipedLeft={() => {
+            ToastAndroid.showWithGravity(
+              `${name} , you have rejected image`,
+              ToastAndroid.SHORT,
+              ToastAndroid.BOTTOM,
+            );
+          }}
+          onSwipedRight={() => {
+            ToastAndroid.showWithGravity(
+              `${name} , you have selected image`,
+              ToastAndroid.SHORT,
+              ToastAndroid.BOTTOM,
+            );
+          }}
+          onSwipedTop={() => onSwiped('top')}
+          onSwipedBottom={() => onSwiped('bottom')}
+          cards={cards}
+          cardIndex={cardIndex}
+          cardVerticalMargin={8}
+          renderCard={renderCard}
+          stackSize={3}
+          stackSeparation={15}
+          verticalSwipe={false}
+          overlayLabels={{
+            bottom: {
+              title: 'BLEAH',
+              style: {
+                label: {
+                  backgroundColor: 'black',
+                  borderColor: 'black',
+                  color: 'white',
+                  borderWidth: 1,
+                },
+                wrapper: {
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+              },
+            },
+            left: {
+              title: 'NOPE',
+              style: {
+                label: {
+                  backgroundColor: 'black',
+                  borderColor: 'black',
+                  color: 'white',
+                  borderWidth: 1,
+                },
+                wrapper: {
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
+                  justifyContent: 'flex-start',
+                  marginTop: 30,
+                  marginLeft: -30,
+                },
+              },
+            },
+            right: {
+              title: 'LIKE',
+              style: {
+                label: {
+                  backgroundColor: 'black',
+                  borderColor: 'black',
+                  color: 'white',
+                  borderWidth: 1,
+                },
+                wrapper: {
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  justifyContent: 'flex-start',
+                  marginTop: 30,
+                  marginLeft: 30,
+                },
+              },
+            },
+            top: {
+              title: 'SUPER LIKE',
+              style: {
+                label: {
+                  backgroundColor: 'black',
+                  borderColor: 'black',
+                  color: 'white',
+                  borderWidth: 1,
+                },
+                wrapper: {
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+              },
+            },
+          }}
+          animateOverlayLabelsOpacity
+          animateCardOpacity
+          swipeBackCard></Swiper>
+      </View>
+      <View style={{width: '100%'}}>
+        <TouchableOpacity style={styles.loginBtn} onPress={logoutHandler}>
+          <Text style={styles.loginText}>LOGOUT</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -52,23 +192,43 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
   },
-  rowItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F2F2',
-    padding: (Metrics.screenWidth * 15) / 375,
-    marginBottom: 10,
-  },
   lessonBody: {
     flex: 1,
+    backgroundColor: '#F5FCFF',
   },
-  lessonName: {
-    fontFamily: Config.Theme.LARSSEIT_BOLD,
-    fontSize: 20,
+  card: {
+    height: '70%',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
+    justifyContent: 'center',
+    backgroundColor: 'white',
   },
-  lessonSubtext: {
-    fontFamily: Config.Theme.LARSSEIT_LIGHT,
-    marginTop: 5,
+  text: {
+    textAlign: 'center',
+    fontSize: 50,
+    backgroundColor: 'transparent',
+  },
+  done: {
+    textAlign: 'center',
+    fontSize: 30,
+    color: 'white',
+    backgroundColor: 'transparent',
+  },
+  loginBtn: {
+    width: '70%',
+    backgroundColor: Config.Theme.COLOR_ACCENT,
+    fontFamily: Config.Theme.LARSSEIT,
+    borderRadius: 25,
+    height: 50,
+    marginLeft: '15%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  loginText: {
+    color: 'white',
   },
 });
 

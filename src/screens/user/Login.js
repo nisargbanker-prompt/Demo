@@ -14,7 +14,11 @@ import Utils from '../../utils/index';
 import * as authActions from '../../store/actions/auth';
 import Route from '../../config/Route';
 
+import {useDispatch} from 'react-redux';
+
 const LoginScreen = props => {
+  const dispatch = useDispatch();
+
   const [mobileNumber, setMobileNumber] = useState('');
 
   const loginHandler = async () => {
