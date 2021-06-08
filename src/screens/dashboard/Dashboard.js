@@ -7,6 +7,7 @@ import {
   Image,
   ToastAndroid,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import Metrics from '../../config/Metrics';
 import Config from '../../config/index';
@@ -20,6 +21,9 @@ const DashboardScreen = props => {
   const dispatch = useDispatch();
 
   const [name, setName] = useState('');
+  const [timeout, setTimeouts] = useState([]);
+
+  let t1;
 
   const [cards, setCards] = useState([
     require('../../../assets/one.png'),
@@ -62,17 +66,12 @@ const DashboardScreen = props => {
     );
   };
 
-  const onSwiped = type => {
-    console.log(`on swiped ${type}`);
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Welcome {name}</Text>
 
       <View style={styles.lessonBody}>
         <Swiper
-          onSwiped={() => onSwiped('general')}
           onSwipedLeft={() => {
             ToastAndroid.showWithGravity(
               `${name} , you have rejected image`,
@@ -91,11 +90,54 @@ const DashboardScreen = props => {
           onSwipedBottom={() => onSwiped('bottom')}
           cards={cards}
           cardIndex={cardIndex}
+          onSwiped={cardIndex => {
+            setCardIndex(cardIndex);
+          }}
           cardVerticalMargin={8}
           renderCard={renderCard}
           stackSize={3}
           stackSeparation={15}
           verticalSwipe={false}
+          onTapCardDeadZone={5}
+          dragEnd={() => {
+            if (cardIndex == 3) {
+              Alert.alert(
+                Config.String.APP_NAME,
+                'You have rated all the images. Thank You!',
+                [
+                  {
+                    text: 'Ok',
+                  },
+                ],
+              );
+            } else if (cardIndex == 1) {
+              var timeouts = [];
+
+              timeouts.push(
+                setTimeout(function () {
+                  Alert.alert(
+                    Config.String.APP_NAME,
+                    'You have not active from last 5 seconds',
+                    [
+                      {
+                        text: 'Ok',
+                      },
+                    ],
+                  );
+                }, 5000),
+              );
+
+              //clearTimeout(timeouts[0]);
+
+              setTimeouts([...timeout, timeouts]);
+            }
+          }}
+          dragStart={() => {
+            for (var i = 0; i < timeout.length; i++) {
+              clearTimeout(timeout[i]);
+            }
+            //setTimeouts([]);
+          }}
           overlayLabels={{
             bottom: {
               title: 'BLEAH',
