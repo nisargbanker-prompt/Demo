@@ -12,3 +12,5 @@ Used Dependancies
 1. Redux
 2. Navigation 5
 3. react-native-deck-swiper
+
+You can download and check apk from here - https://i.diawi.com/s2bs4u
