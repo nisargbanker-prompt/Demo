@@ -16,4 +16,5 @@ export default {
   SOMETHING_WENT_WRONG:
     'Something went wrong. Please try again after some time.',
   TRY_AGAIN: 'Please try again...',
+  LAST_POSITION: 'last_position',
 };

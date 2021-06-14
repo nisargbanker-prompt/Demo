@@ -11,8 +11,15 @@ import Config from '../../config/index';
 import Utils from '../../utils/index';
 
 import Route from '../../config/Route';
+import * as authActions from '../../store/actions/auth';
+
+import {useSelector, useDispatch} from 'react-redux';
 
 const OTPScreen = props => {
+  const dispatch = useDispatch();
+
+  const isFrom = useSelector(state => state.auth.isFrom);
+
   const [otp, setOtp] = useState('');
 
   const registerHandler = async () => {
@@ -20,7 +27,13 @@ const OTPScreen = props => {
       return;
     }
 
-    props.navigation.navigate(Route.UserInfo);
+    if (isFrom === 'login') {
+      dispatch(authActions.register()).then(data => {
+        props.navigation.navigate(Route.Dashboard);
+      });
+    } else {
+      props.navigation.navigate(Route.UserInfo);
+    }
   };
 
   return (

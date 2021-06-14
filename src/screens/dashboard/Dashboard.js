@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   StyleSheet,
@@ -17,13 +17,14 @@ import * as authActions from '../../store/actions/auth';
 
 import {useDispatch} from 'react-redux';
 
+let t1;
+
 const DashboardScreen = props => {
   const dispatch = useDispatch();
 
   const [name, setName] = useState('');
-  const [timeout, setTimeouts] = useState([]);
 
-  let t1;
+  const swiper = useRef(null);
 
   const [cards, setCards] = useState([
     require('../../../assets/one.png'),
@@ -36,19 +37,48 @@ const DashboardScreen = props => {
 
   useEffect(() => {
     _getUSerData();
-  }, []);
+  }, [0]);
 
   _getUSerData = async () => {
     const userName = await Utils.MethodUtils.Storage.getData(
       Config.String.USER_NAME,
     );
-    console.log('userName == > ' + userName);
     setName(userName);
+
+    const last_position = await Utils.MethodUtils.Storage.getData(
+      Config.String.LAST_POSITION,
+    );
+
+    if (last_position !== null) {
+      setCardIndex(last_position);
+      swiper.current.jumpToCardIndex(last_position);
+      t1 = setTimeout(function () {
+        setCardIndex(last_position + 1);
+        Utils.MethodUtils.storeLastPos(last_position + 1);
+        swiper.current.swipeLeft();
+        //swiper.current.jumpToCardIndex(last_position + 1);
+      }, 5000);
+    } else {
+      t1 = setTimeout(function () {
+        setCardIndex(cardIndex + 1);
+        Utils.MethodUtils.storeLastPos(cardIndex + 1);
+        swiper.current.swipeLeft();
+      }, 5000);
+    }
   };
 
   const logoutHandler = async () => {
     await Utils.MethodUtils.Storage.removeData(Config.String.IS_LOGIN);
+    await Utils.MethodUtils.Storage.removeData(Config.String.LAST_POSITION);
     dispatch(authActions.setUserSesson(false));
+  };
+
+  const setTimer = () => {
+    t1 = setTimeout(function () {
+      setCardIndex(cardIndex + 1);
+      swiper.current.swipeLeft();
+      Utils.MethodUtils.storeLastPos(cardIndex + 1);
+    }, 5000);
   };
 
   const renderCard = (card, index) => {
@@ -66,12 +96,24 @@ const DashboardScreen = props => {
     );
   };
 
+  const _setDragEnd = () => {
+    t1 = setTimeout(function () {
+      setCardIndex(cardIndex + 1);
+      swiper.current.jumpToCardIndex(cardIndex + 2);
+    }, 5000);
+  };
+
+  const _setDragStart = () => {
+    clearTimeout(t1);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Welcome {name}</Text>
 
       <View style={styles.lessonBody}>
         <Swiper
+          ref={swiper}
           onSwipedLeft={() => {
             ToastAndroid.showWithGravity(
               `${name} , you have rejected image`,
@@ -92,15 +134,10 @@ const DashboardScreen = props => {
           cardIndex={cardIndex}
           onSwiped={cardIndex => {
             setCardIndex(cardIndex);
-          }}
-          cardVerticalMargin={8}
-          renderCard={renderCard}
-          stackSize={3}
-          stackSeparation={15}
-          verticalSwipe={false}
-          onTapCardDeadZone={5}
-          dragEnd={() => {
-            if (cardIndex == 3) {
+            console.log(cardIndex);
+            if (cardIndex <= 3) {
+              setTimer();
+            } else {
               Alert.alert(
                 Config.String.APP_NAME,
                 'You have rated all the images. Thank You!',
@@ -110,34 +147,17 @@ const DashboardScreen = props => {
                   },
                 ],
               );
-            } else if (cardIndex == 1) {
-              var timeouts = [];
-
-              timeouts.push(
-                setTimeout(function () {
-                  Alert.alert(
-                    Config.String.APP_NAME,
-                    'You have not active from last 5 seconds',
-                    [
-                      {
-                        text: 'Ok',
-                      },
-                    ],
-                  );
-                }, 5000),
-              );
-
-              //clearTimeout(timeouts[0]);
-
-              setTimeouts([...timeout, timeouts]);
             }
+            Utils.MethodUtils.storeLastPos(cardIndex + 1);
           }}
-          dragStart={() => {
-            for (var i = 0; i < timeout.length; i++) {
-              clearTimeout(timeout[i]);
-            }
-            //setTimeouts([]);
-          }}
+          cardVerticalMargin={8}
+          renderCard={renderCard}
+          stackSize={3}
+          stackSeparation={15}
+          verticalSwipe={false}
+          onTapCardDeadZone={5}
+          dragEnd={_setDragEnd}
+          dragStart={_setDragStart}
           overlayLabels={{
             bottom: {
               title: 'BLEAH',

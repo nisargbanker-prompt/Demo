@@ -99,6 +99,10 @@ const storeUserRestaurantData = () => {
   Storage.setData(Config.String.RESTAURANT_DATA, true);
 };
 
+const storeLastPos = last_position => {
+  Storage.setData(Config.String.LAST_POSITION, last_position);
+};
+
 const logoutUser = () => {
   Storage.setData(Config.String.IS_LOGIN, false);
 };
@@ -112,5 +116,6 @@ export default {
   storeUserRestaurantData,
   storeUserName,
   storeMobileNumber,
+  storeLastPos,
   logoutUser,
 };

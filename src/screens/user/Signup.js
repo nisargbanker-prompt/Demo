@@ -31,6 +31,8 @@ const SignUpScreen = props => {
 
     console.log('isUserLogin == > ' + isUserLogin);
 
+    dispatch(authActions.isFrom('register'));
+
     dispatch(authActions.setUserSesson(isUserLogin));
   };
 

@@ -31,9 +31,8 @@ const LoginScreen = props => {
     );
 
     if (savedMobileNumber === mobileNumber) {
-      dispatch(authActions.register()).then(data => {
-        props.navigation.navigate(Route.Dashboard);
-      });
+      dispatch(authActions.isFrom('login'));
+      props.navigation.navigate(Route.OTP);
     } else {
       Alert.alert(
         Config.String.APP_NAME,
